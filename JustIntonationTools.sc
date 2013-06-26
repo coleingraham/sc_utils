@@ -103,6 +103,7 @@ JustIntonationTools {
 	}
 }
 
+/*
 //////////////
 // examples //
 //////////////
@@ -129,3 +130,5 @@ JustIntonationTools {
 	(4/3).alterRatio(-1/n).asRational.postln;
 }
 )
+
+*/

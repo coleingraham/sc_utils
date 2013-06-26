@@ -70,32 +70,15 @@ JustIntonationTools {
 + Rational {
 
 	oddLimit {
-		var num = this.asRational.numerator.asInteger;
-		var den = this.asRational.denominator.asInteger;
-
-		if( num.odd ,{
-			^num;
-			},{
-				^den;
-		});
+		^JustIntonationTools.oddLimit(this);
 	}
 
 	primeLimit {
-		var num = this.asRational.numerator.asInteger;
-		var den = this.asRational.denominator.asInteger;
-
-		var numLimit = num.factors.sort.reverse[0];
-		var denLimit = den.factors.sort.reverse[0];
-
-		if( numLimit > denLimit ,{
-			^numLimit;
-			},{
-				^denLimit;
-		});
+		^JustIntonationTools.primeLimit(this);
 	}
 
 	alteredRatio{|alteration|
-		^( (this.numerator + (alteration)) /% (this.denominator + (alteration)) );
+		^JustIntonationTools.alteredRatio(this,alteration);
 	}
 }
 
@@ -116,15 +99,6 @@ JustIntonationTools {
 
 + Array {
 	differenceToneRatio {
-		var dt = List();
-
-		this.do{|denom,i|
-			this.do{|num,j|
-				if(num > denom, { dt.add( num - denom ) });
-			};
-		};
-
-		dt = dt.sort;
-		^Lattice.adjustOctave( dt[0] );
+		^JustIntonationTools.differenceToneRatio(this);
 	}
 }

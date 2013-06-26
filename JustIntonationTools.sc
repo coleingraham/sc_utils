@@ -58,14 +58,14 @@ JustIntonationTools {
 	/**
 	 * return the ratio altered by a fraction (useful for finding nearby ratios)
 	 */
-	*alteredRatio{|ratio, alteration|
-		^( (ratio.numerator + (alteration)) /% (ratio.denominator + (alteration)) );
+	*alterRatio{|ratio, alteration|
+		^( (ratio.numerator + (alteration)) / (ratio.denominator + (alteration)) );
 	}
 }
 
-////////////////////////////////////////////////////////////////
-// extensions that do the same thing as JustIntonationTools   //
-////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////
+// extensions that wrap JustIntonationTools //
+//////////////////////////////////////////////
 
 + Rational {
 
@@ -77,8 +77,8 @@ JustIntonationTools {
 		^JustIntonationTools.primeLimit(this);
 	}
 
-	alteredRatio{|alteration|
-		^JustIntonationTools.alteredRatio(this,alteration);
+	alterRatio{|alteration|
+		^JustIntonationTools.alterRatio(this,alteration);
 	}
 }
 
@@ -92,8 +92,8 @@ JustIntonationTools {
 		^this.asRational.primeLimit;
 	}
 
-	alteredRatio{|alteration|
-		^this.asRational.alteredRatio(alteration);
+	alterRatio{|alteration|
+		^this.asRational.alterRatio(alteration);
 	}
 }
 
@@ -102,3 +102,30 @@ JustIntonationTools {
 		^JustIntonationTools.differenceToneRatio(this);
 	}
 }
+
+//////////////
+// examples //
+//////////////
+
+// alter a 3/2 by 1/n where n is the first 4 primes.
+// 1/2 gives the next lower "step," smaller alterations move closer to initial ratio
+(
+(0..3).nthPrime.do{|n|
+	(3/2).alterRatio(1/n).asRational.postln;
+}
+)
+
+// alter a 3/2 by (n-1)/n where n is the first 4 primes.
+// 1/2 gives the next lower "step," larger alterations move closer to the further ratio
+(
+(0..3).nthPrime.do{|n|
+	(3/2).alterRatio((n-1)/n).asRational.postln;
+}
+)
+
+// identical results to (n-1)/n but from the smaller ratio
+(
+(0..3).nthPrime.do{|n|
+	(4/3).alterRatio(-1/n).asRational.postln;
+}
+)

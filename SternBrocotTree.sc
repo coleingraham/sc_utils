@@ -149,6 +149,14 @@ SternBrocotTree {
 	* simplicity {|ratio|
 		^SternBrocotTree.complexity(ratio).reciprocal;
 	}
+
+	* rightFirst {|continuedFraction|
+		^(continuedFraction[0] = 1);
+	}
+
+	* leftFirst {|continuedFraction|
+		^(continuedFraction[0] = 0);
+	}
 }
 
 //////////////////////////////////////////
@@ -184,6 +192,14 @@ SternBrocotTree {
 	sbRight {|steps=1|
 		^this.matrixFromRatio.sbRight(steps).asRational;
 	}
+
+	sbLeftFirst {
+		^this.asContinuedFraction.sbLeftFirst.fromContinuedFraction.asRational;
+	}
+
+	sbRightFirst {
+		^this.asContinuedFraction.sbRightFirst.fromContinuedFraction.asRational;
+	}
 }
 
 + SimpleNumber {
@@ -215,6 +231,14 @@ SternBrocotTree {
 	sbRight {|steps=1|
 		^this.asRational.sbRight(steps).asFloat;
 	}
+
+	sbLeftFirst {
+		^this.asRational.sbLeftFirst.asFloat;
+	}
+
+	sbRightFirst {
+		^this.asRational.sbRightFirst.asFloat;
+	}
 }
 
 + SequenceableCollection {
@@ -229,6 +253,14 @@ SternBrocotTree {
 
 	sbUp {
 		^SternBrocotTree.up(this);
+	}
+
+	sbLeftFirst {
+		^SternBrocotTree.leftFirst(this);
+	}
+
+	sbRightFirst {
+		^SternBrocotTree.rightFirst(this);
 	}
 }
 

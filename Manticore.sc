@@ -6,7 +6,7 @@ Manticore
 {
 	classvar <manticorePieces, <>group, <>users;
 
-	classvar activePiece, osc;
+	classvar <activePieces, osc;
 
 	classvar win, <mainView, interface;
 
@@ -56,7 +56,9 @@ Manticore
 		OSCthulhu.changePorts([57120]);
 		OSCthulhu.login;
 
-		activePiece = ManticorePiece.new;
+		activePieces = nil;
+		// activePieces = Dictionary.new;
+		// activePieces.add(ManticorePiece.new);
 
 		previousGUI = GUI.id;
 		GUI.qt;
@@ -74,7 +76,8 @@ Manticore
 
 	*free
 	{
-		activePiece.free;
+		activePieces.free;
+		// activePieces.collect({|piece| piece.free});
 		osc.collect({|def| def.permanent_(false); def.free; });
 		GUI.fromID(previousGUI);
 		active = false;
@@ -146,16 +149,18 @@ Manticore
 				[bottomPannel, stretch:1]
 			)
 		);
-
+		/*
 		View.globalKeyDownAction_({|view, char, modifiers, unicode, keycode, key|
 			if(char == $t,{
 				chatWindow.chatEntry.focus;
 			});
 		});
-
+		*/
 		mainView = mainView[0];
 
-		interface = activePiece.getInterface(mainView);
+		if(activePieces.notNil, {
+			interface = activePieces.getInterface(mainView);
+		});
 
 		OSCthulhu.getChat;
 	}
@@ -204,11 +209,20 @@ Manticore
 
 	*changePiece
 	{|className|
-		activePiece.free;
+		activePieces.free; // move this to a close button after adding multi-piece support
 		mainView.removeAll;
-		activePiece = className.asClass.new(this);
-		interface = activePiece.getInterface(mainView);
+		activePieces = className.asClass.new(this);
+		interface = activePieces.getInterface(mainView);
 		win.name = "Manticore :" + className;
+		/*
+		activePieces.atFail(className, {
+			activePieces.put(className,className.asClass.new(this));
+		});
+
+		mainView.removeAll;
+		interface = activePieces.at(className).getInterface(mainView);
+		win.name = "Manticore :" + className;
+		*/
 	}
 
 	*onScoreNext
@@ -463,7 +477,7 @@ ManticoreTimer
 */
 ManticorePieceListWindow
 {
-	var pieceList, changeBtn, recBtn;
+	var pieceList, changeBtn, recBtn, closeBtn;
 
 	*new
 	{|parent|
@@ -479,14 +493,16 @@ ManticorePieceListWindow
 			VLayout(
 				StaticText().string_("Pieces"),
 				pieceList = [ListView(), stretch:1],
-				changeBtn = [Button(), stretch:1]//,
-				//recBtn = [Button(), stretch:1]
+				HLayout(
+					changeBtn = [Button(), stretch:10],
+					closeBtn = [Button(), stretch:1]
+				)
 			);
 		);
 
 		pieceList = pieceList[0];
 		changeBtn = changeBtn[0];
-		//recBtn = recBtn[0];
+		closeBtn = closeBtn[0];
 
 		pieceList.items = Manticore.manticorePieces.asArray;
 		pieceList.canReceiveDragHandler = {};
@@ -496,20 +512,12 @@ ManticorePieceListWindow
 		changeBtn.action_({|btn|
 			this.loadPiece;
 		});
-		/*
-		recBtn.states_([["Record"],["Stop Recording"]]);
-		recBtn.action_({|b|
-		switch(b.value,
-		0, {
-		Server.default.stopRecording;
-		},
-		1, {
-		Server.default.prepareForRecord;
-		{Server.default.record}.defer;
-		}
-		);
+
+		closeBtn.states_([ ["X"] ]);
+
+		closeBtn.action_({|btn|
+			this.closePiece;
 		});
-		*/
 
 		^view;
 	}
@@ -518,6 +526,12 @@ ManticorePieceListWindow
 	{
 		Manticore.changePiece(pieceList.item);
 		OSCthulhu.chat("*** Joining" + pieceList.item + "***");
+	}
+
+	closePiece
+	{
+		Manticore.activePieces.free;
+		// Manticore.activePieces.at(pieceList.item).free;
 	}
 
 }
@@ -542,5 +556,201 @@ ManticorePiece
 	free
 	{
 
+	}
+}
+
+//////////////////////////////
+/*
+* ManticoreII
+* Functions as a piece library and audio server
+*/
+
+ManticoreII
+{
+	classvar <manticorePieces, <>group, <>users;
+
+	classvar <activePieces, osc;
+
+	classvar win;
+
+	classvar previousGUI, active;
+
+	classvar usersWindow, pieceListWindow;
+
+	*initClass
+	{
+		manticorePieces = List.new;
+		users = Dictionary.new;
+		active = false;
+	}
+
+	*registerPiece
+	{|className|
+		manticorePieces.add(className);
+	}
+
+	*new
+	{
+		if(active == false,{
+			this.init;
+			active = true;
+		});
+	}
+
+	*init
+	{
+		osc = List.new;
+		this.setupOSClisteners;
+
+		OSCthulhu.changePorts([57120]);
+		OSCthulhu.login;
+
+		activePieces = nil;
+
+		previousGUI = GUI.id;
+		GUI.qt;
+		QtGUI.palette = QPalette.dark;
+
+		this.makeWindow;
+	}
+
+	*free
+	{
+		activePieces.free;
+		osc.collect({|def| def.permanent_(false); def.free; });
+		GUI.fromID(previousGUI);
+		active = false;
+	}
+
+	*makeWindow
+	{
+		win = Window("ManticoreII");
+		win.acceptsMouseOver = true;
+		win.front;
+		win.onClose_({ this.free; });
+
+		usersWindow = ManticoreIIUsersWindow();
+
+		pieceListWindow = ManticoreIIPieceListWindow(this);
+
+		win.layout_(
+			VLayout(
+				usersWindow.getView,
+				pieceListWindow.getView
+			)
+		);
+
+		OSCthulhu.getChat;
+	}
+
+	*setupOSClisteners
+	{
+		osc.add(
+			OSCthulhu.onUserName(\setOSCthulhuUserName,{|msg|
+				/*				OSCthulhu.userName = msg[1];
+				("OSCthulhu Username:" + OSCthulhu.userName).postln;*/
+			});
+		);
+
+		osc.add(OSCthulhu.onAddPeer(\addingPeer, {|msg|
+			users.put(msg[1], ManticoreUser.new(msg[1]));
+			usersWindow.update;
+			});
+		);
+
+		osc.add(OSCthulhu.onRemovePeer(\removingPeer, {|msg|
+			users.removeAt(msg[1]);
+			usersWindow.update;
+			});
+		);
+
+		osc.collect({|def| def.permanent_(true); });
+	}
+
+	*changePiece
+	{|className|
+		activePieces.free;
+		activePieces = (className++"II").asSymbol.asClass.new(this);
+		win.name = "ManticoreII :" + className;
+	}
+}
+
+/*
+* View for listing/loading all Manticore pieces
+*/
+ManticoreIIPieceListWindow
+{
+	var pieceList, changeBtn;
+
+	*new
+	{|parent|
+		^super.new;
+	}
+
+	getView
+	{
+		var view;
+
+		view = View();
+		view.layout_(
+			VLayout(
+				StaticText().string_("Pieces"),
+				pieceList = [ListView(), stretch:1],
+				changeBtn = [Button(), stretch:10]
+			);
+		);
+
+		pieceList = pieceList[0];
+		changeBtn = changeBtn[0];
+
+		pieceList.items = ManticoreII.manticorePieces.asArray;
+		pieceList.canReceiveDragHandler = {};
+
+		changeBtn.states_([ ["Load Piece"] ]);
+
+		changeBtn.action_({|btn|
+			this.loadPiece;
+		});
+
+		^view;
+	}
+
+	loadPiece
+	{
+		ManticoreII.changePiece(pieceList.item);
+		OSCthulhu.chat("*** Joining" + pieceList.item + "***");
+	}
+}
+
+ManticoreIIUsersWindow
+{
+	var view;
+
+	*new
+	{
+		^super.new;
+	}
+
+	getView
+	{
+		view = View().layout_(HLayout());
+		view.background_(Color.gray(0.2));
+
+		this.update;
+
+		^view;
+	}
+
+	update
+	{
+		{
+			view.removeAll;
+			view.layout_(HLayout());
+			view.layout.add(StaticText().string_("Users:"));
+			ManticoreII.users.do{|item|
+				view.layout.add(StaticText().string_(item.name).stringColor_(item.color));
+			};
+			view.layout.add(nil);
+		}.defer;
 	}
 }

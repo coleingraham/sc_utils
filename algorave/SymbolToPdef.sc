@@ -29,6 +29,11 @@ A more concise way to create Pdefs for live coding.
 		var output = "";
 		var pbind = "";
 
+		if(event.isKindOf(Event).not,{
+			"% +> did not receive an Event".format(patternName).error;
+			^patternName;
+		});
+
 		event.keys.do{|key|
 			pbind = pbind ++ key ++ ":Pseq(" ++ event[key].asCompileString ++",inf),";
 		};
@@ -99,6 +104,7 @@ A more concise way to create Pdefs for live coding.
 	{
 		^Pdef(this).player.unmute;
 	}
+
 }
 
 /*

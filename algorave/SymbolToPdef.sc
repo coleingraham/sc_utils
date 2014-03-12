@@ -1,5 +1,5 @@
 /*
-A more consice way to create Pdefs for live coding.
+A more concise way to create Pdefs for live coding.
 */
 + Symbol
 {

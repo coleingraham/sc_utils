@@ -37,6 +37,68 @@ A more concise way to create Pdefs for live coding.
 		output.interpret;
 		^output;
 	}
+
+	/*
+	Quick way to play the resulting Pdef.
+	TODO: pass all possible arguments correctly
+	*/
+	play
+	{|argClock, quant|
+		if(argClock.notNil && quant.notNil,{ ^Pdef(this).play(argClock, quant:quant); });
+		if(argClock.notNil,{ ^Pdef(this).play(argClock); });
+		if(quant.notNil,{ ^Pdef(this).play(quant:quant); });
+		^Pdef(this).play();
+	}
+
+	/*
+	Quick way to stop the resulting Pdef.
+	*/
+	stop
+	{
+		^Pdef(this).stop;
+	}
+
+	/*
+	Quick way to call Pdef().player
+	*/
+	player
+	{
+		^Pdef(this).player;
+	}
+
+	pause
+	{
+		^Pdef(this).pause;
+	}
+
+	resume
+	{|argClock, quant|
+		if(argClock.notNil && quant.notNil,{ ^Pdef(this).resume(argClock, quant:quant); });
+		if(argClock.notNil,{ ^Pdef(this).resume(argClock); });
+		if(quant.notNil,{ ^Pdef(this).resume(quant:quant); });
+		^Pdef(this).resume();
+	}
+
+	reset
+	{
+		^Pdef(this).reset;
+	}
+
+	/*
+	Same as Pdef().player.mute
+	*/
+	mute
+	{
+		^Pdef(this).player.mute;
+	}
+
+	/*
+	Same as Pdef().player.unmute
+	*/
+	unmute
+	{
+		^Pdef(this).player.unmute;
+	}
 }
 
 /*
@@ -47,6 +109,9 @@ EXAMPLES
 
 // play it like any other Pdef
 Pdef(\pat).play;
+
+// or play from the Symbol directly
+\pat.play;
 
 A few things to note:
 -all values inside the event MUST be inside an array like

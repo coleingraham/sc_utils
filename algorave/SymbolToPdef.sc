@@ -20,8 +20,7 @@ A more concise way to create Pdefs for live coding.
 
 	/*
 	Create a Pdef named after our Symbol. The Event is converted into a Pbind with each
-	value wrapped inside a Pseq([],inf). This requires that all values (even solatary ones)
-	in the Event be enclosed in an array. Beyond that, all valid SuperCollider code works
+	value wrapped inside a Pseq([],inf). Beyond that, all valid SuperCollider code works
 	as per usual.
 	*/
 	*eventToPdef
@@ -35,7 +34,15 @@ A more concise way to create Pdefs for live coding.
 		});
 
 		event.keys.do{|key|
-			pbind = pbind ++ key ++ ":Pseq(" ++ event[key].asCompileString ++",inf),";
+			var value = event[key];
+
+			if(value.isKindOf(Array),{
+				value = value.asCompileString;
+				},{
+					value = "[%]".format(value.asCompileString);
+			});
+
+			pbind = pbind ++ key ++ ":Pseq(" ++ value ++",inf),";
 		};
 
 		output = "Pdef(\\" ++ patternName ++ ",Pbind(*[" ++ pbind ++ "]));";
@@ -111,7 +118,7 @@ A more concise way to create Pdefs for live coding.
 EXAMPLES
 
 // create out Pdef(\pat) by using the +> operator to assign an Event to it
-\pat+>(instrument:["default"],dur:[0.5,0.25,0.25]*0.5,type:[Pwrand([\note,\rest],[0.8,0.2])],freq:[440,550,660,880]);
+\pat+>(instrument:"default",dur:[0.5,0.25,0.25]*0.5,type:[Pwrand([\note,\rest],[0.8,0.2])],freq:[440,550,660,880]);
 
 // play it like any other Pdef
 Pdef(\pat).play;
@@ -120,12 +127,6 @@ Pdef(\pat).play;
 \pat.play;
 
 A few things to note:
--all values inside the event MUST be inside an array like
-
-instrument:["default"]
-
-since they are automattically wrapped in a Pseq
-
 -you can do math on the elements just like normal like
 
 dur:[0.5,0.25,0.25]*0.5)

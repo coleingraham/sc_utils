@@ -42,6 +42,9 @@ A more concise way to create Pdefs for live coding.
 					value = "[%]".format(value.asCompileString);
 			});
 
+			// allow inst as a shortcut for instrument
+			if(key.asString == "inst",{ key = "instrument" });
+
 			pbind = pbind ++ key ++ ":Pseq(" ++ value ++",inf),";
 		};
 

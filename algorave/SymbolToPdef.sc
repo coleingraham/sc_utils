@@ -37,18 +37,19 @@ A more concise way to create Pdefs for live coding.
 			var value = event[key];
 
 			if(value.isKindOf(Array),{
-				value = value.asCompileString;
-				},{
-					value = "[%]".format(value.asCompileString);
+				value = "Pseq(" ++ value.asCompileString ++ ",inf)";
+			},{
+					value = value.asCompileString;
 			});
 
 			// allow inst as a shortcut for instrument
 			if(key.asString == "inst",{ key = "instrument" });
 
-			pbind = pbind ++ key ++ ":Pseq(" ++ value ++",inf),";
+			pbind = pbind ++ key ++ ":" ++ value ++",";
 		};
 
 		output = "Pdef(\\" ++ patternName ++ ",Pbind(*[" ++ pbind ++ "]));";
+		output = output.replace(" ","");
 		output.interpret;
 		^output;
 	}

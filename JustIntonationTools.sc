@@ -91,6 +91,22 @@ JustIntonationTools {
 		^(midi.midinote + cents);
 	}
 
+	/**
+	* return an array of partial numbers from a set of ratios
+	*/
+	*partialsFromRatios{|array|
+		var denoms, base;
+		denoms = array.collect{|r| r.asRational.denominator};
+
+		base = denoms.collect{|numB|
+			denoms.collect{|numA|
+				numA.asInteger.lcm(numB.asInteger);
+			};
+		}.flat.sort.reverse[0];
+
+		^array*base;
+	}
+
 }
 
 //////////////////////////////////////////////
@@ -155,6 +171,10 @@ JustIntonationTools {
 
 	midinotecents {
 		^this.collect{|n| n.midinotecents; };
+	}
+
+	partialsFromRatios {
+		^JustIntonationTools.partialsFromRatios(this);
 	}
 }
 

@@ -38,7 +38,7 @@ A more concise way to create Pdefs for live coding.
 
 			if(value.isKindOf(Array),{
 				value = "Pseq(" ++ value.asCompileString ++ ",inf)";
-			},{
+				},{
 					value = value.asCompileString;
 			});
 
@@ -51,7 +51,7 @@ A more concise way to create Pdefs for live coding.
 		output = "Pdef(\\" ++ patternName ++ ",Pbind(*[" ++ pbind ++ "]));";
 		output = output.replace(" ","");
 		output.interpret;
-		^output;
+		^Pdef(patternName);
 	}
 
 	/*
@@ -116,6 +116,53 @@ A more concise way to create Pdefs for live coding.
 		^Pdef(this).player.unmute;
 	}
 
+	/*
+	Wrapper for setting one value with Pbindf
+	*/
+	set
+	{|key, value|
+
+		if(value.isKindOf(String),{ value = value.asLayout; }); // handle Lich style layout patterns
+
+		if(value.isKindOf(Array),{
+			^Pbindef(this,key.asSymbol,Pseq(value,inf));
+			},{
+				^Pbindef(this,key.asSymbol,value);
+		});
+
+
+		// ^Pdef(this);
+	}
+
+}
+
++ String
+{
+	/*
+	Pseudo-Lich style layout patterns
+	*/
+	asLayout
+	{
+		var str,output,dur;
+		output = List();
+		str = this;
+		str = str.split($ );
+		str = str.do({|beat|
+			beat = beat.stripWhiteSpace;
+
+			dur = (beat.size*2).reciprocal;
+
+			beat.do{|char|
+				switch(
+					char,
+					$_, { output.add(Rest(dur)) },
+					$x, { output.add(dur) }
+				);
+			};
+		});
+
+		^output.flat.asArray;
+	}
 }
 
 /*

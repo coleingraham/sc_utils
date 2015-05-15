@@ -1,4 +1,6 @@
 /*
+SerialistMatrix
+by Cole Ingraham (www.coleingraham.com)
 Container for serial music like 2D matricies.
 There is, however, no restriction on size (e.g.
 you can have more than 12 tones/indecies/etc.)

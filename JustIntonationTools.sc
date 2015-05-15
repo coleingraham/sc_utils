@@ -91,6 +91,13 @@ JustIntonationTools {
 		^(midi.midinote + cents);
 	}
 
+	*notecentsmidi{|str|
+		var note = str.subStr(0,2);
+		var cents = (str.subStr(4).asFloat / 100);
+
+		^(note.notemidi + cents);
+	}
+
 	/**
 	* return an array of partial numbers from a set of ratios
 	*/
@@ -105,6 +112,24 @@ JustIntonationTools {
 		}.flat.sort.reverse[0];
 
 		^array*base;
+	}
+
+	/**
+	* return an array of ratios from a set of partial numbers
+	* ref is the partial representing 1/1 in the set
+	*/
+	*ratiosFromPartials{|array,ref|
+		if(ref.isNil,{
+			ref = 2.pow(array.sort[0].asInteger.numBits);
+		});
+		^(array * ref.reciprocal).collect{|p| Lattice.adjustOctave(p)}.sort;
+	}
+
+	/**
+	* return an array of ratios in their simplest form
+	*/
+	*normalizeRatios {|ratios|
+		^(ratios * ratios.lowestDifferenceTone.reciprocal).adjustOctave.sort;
 	}
 
 }
@@ -126,6 +151,14 @@ JustIntonationTools {
 	alterRatio{|alteration|
 		^JustIntonationTools.alterRatio(this,alteration);
 	}
+}
+
++ Integer {
+
+	primeLimit {
+		^this.factors.sort.reverse[0];
+	}
+
 }
 
 + Float {
@@ -176,6 +209,25 @@ JustIntonationTools {
 	partialsFromRatios {
 		^JustIntonationTools.partialsFromRatios(this);
 	}
+
+	ratiosFromPartials {|ref|
+		if(ref.isNil,{
+			^JustIntonationTools.ratiosFromPartials(this,nil);
+		});
+		^JustIntonationTools.ratiosFromPartials(this,ref);
+	}
+
+	normalizeRatios {
+		^JustIntonationTools.normalizeRatios(this);
+	}
+
+}
+
++ String {
+
+	notecentsmidi {
+		^JustIntonationTools.notecentsmidi(this);
+	}
 }
 
 /*
@@ -217,6 +269,29 @@ JustIntonationTools {
 { Mix.new( SinOsc.ar([1,6/5,8/5,9/5] * 440,0,0.4).distort )
 + Saw.ar([1,6/5,8/5,9/5].lowestDifferenceTone * 55, 0.3)
 }.play
+)
+
+// all ratios are base 2
+[9/8,3/2,7/4].partialsFromRatios.ratiosFromPartials.asRational;
+
+// all ratios are base 5 so we need an argument
+[6/5,3/2,9/5].partialsFromRatios.ratiosFromPartials(5).asRational;
+
+// these are equivelent
+(
+var f = 440 * [1,6/5,3/2,9/5];
+{SinOsc.ar(f,0,0.1)}.play;
+f;
+)
+
+(
+var fund = 440;
+var ratios = [1,6/5,3/2,9/5];
+var partials = ratios.partialsFromRatios;
+var ref = partials[0];
+var f = fund * partials.ratiosFromPartials(ref);
+{SinOsc.ar(f,0,0.1)}.play;
+f;
 )
 
 */

@@ -1,4 +1,52 @@
 /*
+A quick way to create what I normally do for a wobble bass
+Assumes that both wubs and shreaks are arrays
+*/
+Pwub
+{
+	*new
+	{|wubs,shreaks|
+		var wubStates = (0..wubs.size-1);
+		var stateArray = List();
+
+		// start with any of the wubs
+		stateArray.add(wubStates);
+
+		// add all the wubs and make them most likely to go to eachother
+		wubs.do({|name|
+			stateArray.add(name);
+			stateArray.add(wubStates.stutter(3) ++ wubs.size);
+		});
+
+		// add the shreaks
+		stateArray.add(Prand(shreaks));
+		// make the shreaks most likely to go back to the wubs
+		stateArray.add(wubStates.stutter(4) ++ wubs.size);
+
+		^Pfsm(stateArray.asArray,inf);
+	}
+
+	// a generally useful set of lfo rates
+	*lfo
+	{
+		^Pwrand([0.5,1,2/3,2,3,4,6,8], [1,2,2,3,4,3,1,1].normalizeSum,inf)
+	}
+}
+
+/*
+Convert a string with a Lich style rhythm a Pseq
+Stands for P Layout/Lich Rhythm
+*/
+Plr
+{
+	*new
+	{|str|
+		^Pseq(str.asLayout,inf);
+	}
+}
+
+
+/*
 A more concise way to create Pdefs for live coding.
 */
 + Symbol
@@ -122,16 +170,25 @@ A more concise way to create Pdefs for live coding.
 	set
 	{|key, value|
 
-		if(value.isKindOf(String),{ value = value.asLayout; }); // handle Lich style layout patterns
+		if(value.isKindOf(String),{ value = Plr(value); }); // handle Lich style layout patterns
 
-		if(value.isKindOf(Array),{
-			^Pbindef(this,key.asSymbol,Pseq(value,inf));
-			},{
-				^Pbindef(this,key.asSymbol,value);
-		});
+		^Pbindef(this,key.asSymbol,value);
+	}
 
+	/*
+	Same as Pdef().quant
+	*/
+	quant
+	{|q|
+		^Pdef(this).quant;
+	}
 
-		// ^Pdef(this);
+	/*
+	Same as Pdef().quant_()
+	*/
+	quant_
+	{|q|
+		^Pdef(this).quant_(q);
 	}
 
 }
@@ -142,7 +199,7 @@ A more concise way to create Pdefs for live coding.
 	Pseudo-Lich style layout patterns
 	*/
 	asLayout
-	{
+	{|multiplier=1|
 		var str,output,dur;
 		output = List();
 		str = this;
@@ -155,13 +212,18 @@ A more concise way to create Pdefs for live coding.
 			beat.do{|char|
 				switch(
 					char,
-					$_, { output.add(Rest(dur)) },
-					$x, { output.add(dur) }
+					$_, { output.add(Rest(dur*multiplier)) },
+					$x, { output.add(dur*multiplier) }
 				);
 			};
 		});
 
 		^output.flat.asArray;
+	}
+
+	asPseq
+	{|repeats=1,multiplier=1|
+		^Pseq(this.asLayout(multiplier),repeats);
 	}
 }
 

@@ -68,8 +68,9 @@ Pstateblend {
 	*new
 	{|a,b,type=\keep,num=4,repeats=1|
 		var blend;
-		var t = true!num;
-		var f = false!num;
+		var n = num.asStream.next;
+		var t = true!n;
+		var f = false!n;
 
 		switch(type,
 			\keep, { blend = StateArrayBlending.keep(t,f) },
@@ -87,8 +88,8 @@ Pstateblend {
 Pbind(
 	\dur,0.2,
 	\degree, Pseq([
-		Pstateblend(Pn(0),Pn(4),\scramble,5),
-		Pstateblend(Pn(4),Pn(0),\scramble,6) // take longer to transition back
+		Pstateblend(0,4,\scramble,5),
+		Pstateblend(4,0,\scramble,6) // take longer to transition back
 	],inf)
 ).play;
 )

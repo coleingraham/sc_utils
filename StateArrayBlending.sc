@@ -1,3 +1,13 @@
+/*
+Given two arrays, both the same length, containint some data,
+creates a 2D array of with each row being a combination of the
+two input arrays, beginning with mostly the first and gragually
+becoming mostly the second. .keep will generate each step with
+the change from the previous step in the same place. .scramble
+will generate each step with the changes in a random position.
+Look at the output of the examples to get a clearer idea of what
+this actually does.
+*/
 StateArrayBlending
 {
 	*scramble
@@ -40,3 +50,46 @@ StateArrayBlending
 		^out;
 	}
 }
+/*
+// start with [ a, a, a, a, a ]
+// in between, each array will have one a replaced by a b
+// until it ends with [ b, b, b, b, b ]
+StateArrayBlending.keep(\a!5,\b!5).do(_.postln);
+
+// same thing with the location of the changed value randomized
+StateArrayBlending.scramble(\a!5,\b!5).do(_.postln);
+*/
+
+
+/*
+Shortcut for using StateArrayBlending with patterns
+*/
+Pstateblend {
+	*new
+	{|a,b,type=\keep,num=4,repeats=1|
+		var blend;
+		var t = true!num;
+		var f = false!num;
+
+		switch(type,
+			\keep, { blend = StateArrayBlending.keep(t,f) },
+			\scramble, { blend = StateArrayBlending.scramble(t,f) },
+			{ ^"type must be either \keep or \scramble".error; }
+		);
+
+		^Pif(Pseq(blend.flat,repeats),a,b);
+	}
+}
+/*
+// continuously alternate back and forth between the two states
+// with different blend arrays
+(
+Pbind(
+	\dur,0.2,
+	\degree, Pseq([
+		Pstateblend(Pn(0),Pn(4),\scramble,5),
+		Pstateblend(Pn(4),Pn(0),\scramble,6) // take longer to transition back
+	],inf)
+).play;
+)
+*/
